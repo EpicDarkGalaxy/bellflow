@@ -1,7 +1,7 @@
 name: bellflow
 description: A Flutter service for timezone-aware local notifications.
 version: 0.1.0
-repository: https://github.com/EpicDarkGalaxy/minimal_expiry_tracker
+repository: https://github.com/EpicDarkGalaxy/bellflow
 environment:
   sdk: ^3.10.0
   flutter: ">=3.38.1"

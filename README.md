@@ -32,6 +32,21 @@ Then run:
 flutter pub get
 ```
 
+## Public API overview
+
+`NotificationService` exposes a small, platform-aware API for local notifications:
+
+- `init(...)` initializes timezone handling and the notification tap callback.
+- `initAndroid(...)` configures Android notification settings and handles Android permissions.
+- `initIOS(...)` configures iOS notification settings and permission requests.
+- `initLinux(...)` configures Linux notification defaults.
+- `initWindows(...)` configures Windows notification registration.
+- `createChannel(...)` creates an Android notification channel.
+- `showNotification(...)` displays a notification immediately.
+- `scheduleNotification(...)` schedules a future notification.
+- `cancelNotification(...)` cancels one notification.
+- `cancelAllNotifications()` cancels all notifications.
+
 ## Basic usage
 
 `NotificationService` is a singleton, so calling `NotificationService()` always gives the same instance.

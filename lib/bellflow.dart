@@ -1,3 +1,3 @@
 export 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-export 'src/notification_service.dart' show NotificationService;
+export 'src/notification_service.dart';

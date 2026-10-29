@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-# bellflow
-A wrapper for flutter local notification.
-=======
 # Bellflow
 
 A Flutter service for initializing local notifications, retrieving the device timezone, and scheduling notifications with `flutter_local_notifications`.
@@ -65,4 +61,3 @@ flutter pub publish --dry-run
 ```
 
 Bellflow is distributed under the MIT License. See [LICENSE](LICENSE).
->>>>>>> e32e918 (Initial commit: migrate to a dedicated repo)

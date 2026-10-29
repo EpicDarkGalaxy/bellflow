@@ -1,53 +1,145 @@
 # Bellflow
 
-A Flutter service for initializing local notifications, retrieving the device timezone, and scheduling notifications with `flutter_local_notifications`.
+Bellflow is a lightweight Flutter helper for timezone-aware local notifications.
 
-Bellflow provides timezone-aware local notification scheduling for Flutter.
+It wraps `flutter_local_notifications` and adds a small convenience layer for:
 
-Source: [minimal_expiry_tracker](https://github.com/EpicDarkGalaxy/minimal_expiry_tracker/tree/main/packages/bellflow).
+- initializing the device timezone
+- configuring platform-specific notification plugins
+- showing, scheduling, and cancelling notifications
+- creating Android notification channels
 
 ## Requirements
 
 - Flutter 3.38.1 or later
 - Android, iOS, Linux, or Windows
+- The host app must still handle the platform-specific notification permissions and setup required by `flutter_local_notifications`
 
-The host app must provide the platform-specific notification permissions and setup required by `flutter_local_notifications`. This package currently has no macOS or web initializer.
+This package currently does not provide macOS or web initialization.
 
-## Usage
+## Installation
 
-Initialize the timezone service and the platform notification plugin before scheduling notifications:
+Add Bellflow to your app:
+
+```yaml
+dependencies:
+  bellflow: ^0.1.0
+```
+
+Then run:
+
+```sh
+flutter pub get
+```
+
+## Basic usage
+
+`NotificationService` is a singleton, so calling `NotificationService()` always gives the same instance.
 
 ```dart
 import 'package:bellflow/bellflow.dart';
+import 'package:flutter/material.dart';
 
-final notifications = NotificationService();
-await notifications.init();
-final permissionGranted = await notifications.initAndroid(
-  requestExactAlarmsPermission: true,
-);
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
 
-if (permissionGranted == true) {
-  await notifications.scheduleNotification(
-    id: 1,
-    title: 'Reminder',
-    body: 'Your reminder is ready.',
-    scheduleDate: DateTime.now().add(const Duration(hours: 1)),
-    notificationDetails: const NotificationDetails(
-      android: AndroidNotificationDetails(
-        'reminders',
-        'Reminders',
-        channelDescription: 'Scheduled reminders',
-      ),
-    ),
+  final notifications = NotificationService();
+
+  await notifications.init(
+    onNotificationTap: (payload) {
+      debugPrint('Tapped notification: $payload');
+    },
   );
+
+  if (defaultTargetPlatform == TargetPlatform.android) {
+    final permissionGranted = await notifications.initAndroid(
+      requestExactAlarmsPermission: true,
+    );
+
+    if (permissionGranted == true) {
+      await notifications.createChannel(
+        channelId: 'reminders',
+        channelName: 'Reminders',
+        channelDescription: 'Scheduled reminder notifications',
+        importance: Importance.max,
+        priority: Priority.high,
+      );
+    }
+  } else if (defaultTargetPlatform == TargetPlatform.iOS) {
+    await notifications.initIOS();
+  } else if (defaultTargetPlatform == TargetPlatform.linux) {
+    await notifications.initLinux();
+  } else if (defaultTargetPlatform == TargetPlatform.windows) {
+    await notifications.initWindows(
+      appName: 'My App',
+      appUserModelId: 'Com.Example.MyApp',
+      guid: '123e4567-e89b-12d3-a456-426614174000',
+    );
+  }
 }
 ```
 
-Call `initIOS`, `initLinux`, or `initWindows` instead of `initAndroid` on those platforms. Android notification channels can be created with `createChannel` after `initAndroid`.
+## Scheduling a notification
 
-## Android setup
+```dart
+final scheduled = await notifications.scheduleNotification(
+  id: 1,
+  title: 'Reminder',
+  body: 'Your reminder is ready.',
+  scheduleDate: DateTime.now().add(const Duration(minutes: 15)),
+  payload: 'reminder-1',
+  notificationDetails: const NotificationDetails(
+    android: AndroidNotificationDetails(
+      'reminders',
+      'Reminders',
+      channelDescription: 'Scheduled reminders',
+      importance: Importance.max,
+      priority: Priority.high,
+    ),
+  ),
+);
 
-Configure the host application's `AndroidManifest.xml` for its target Android versions. In particular, account for the `POST_NOTIFICATIONS` runtime permission on Android 13+, exact alarm access when using exact scheduling, and the scheduled-notification receivers required by `flutter_local_notifications`. Review that plugin's Android setup guide before release because Android permission and receiver requirements vary by plugin and Android version.
+if (scheduled == true) {
+  debugPrint('Notification scheduled successfully.');
+}
+```
+
+The scheduled time must be in the future. If it is in the past, Bellflow logs the event and returns `null`.
+
+## Showing an immediate notification
+
+```dart
+await notifications.showNotification(
+  title: 'Hello',
+  body: 'This notification was shown immediately.',
+  notificationDetails: const NotificationDetails(
+    android: AndroidNotificationDetails(
+      'general',
+      'General',
+      channelDescription: 'General app notifications',
+      importance: Importance.defaultImportance,
+      priority: Priority.defaultPriority,
+    ),
+  ),
+);
+```
+
+## Cancelling notifications
+
+```dart
+await notifications.cancelNotification(1);
+await notifications.cancelAllNotifications();
+```
+
+## Android notes
+
+Android-specific setup still needs to be handled in the app, especially:
+
+- `POST_NOTIFICATIONS` permission on Android 13+
+- exact alarm permission when using precise scheduling
+- the receiver and manifest configuration expected by `flutter_local_notifications`
+
+See the plugin's Android setup guide before shipping to production.
 
 ## Development
 

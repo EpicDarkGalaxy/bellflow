@@ -1,7 +1,14 @@
 name: bellflow
-description: A Flutter service for timezone-aware local notifications.
+description: Timezone-aware local notifications for Flutter using flutter_local_notifications.
 version: 0.1.0
+homepage: https://github.com/EpicDarkGalaxy/bellflow
 repository: https://github.com/EpicDarkGalaxy/bellflow
+issue_tracker: https://github.com/EpicDarkGalaxy/bellflow/issues
+topics:
+  - notifications
+  - timezone
+  - flutter
+  - local-notifications
 environment:
   sdk: ^3.10.0
   flutter: ">=3.38.1"

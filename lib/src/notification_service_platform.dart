@@ -38,42 +38,50 @@ extension NotificationServicePlatformInit on NotificationService {
   ///   small icon for notifications.
   /// - [requestExactAlarmsPermission]: If `true`, requests the exact alarm
   ///   permission required for precise scheduled delivery.
-  Future<bool?> initAndroid({
+  ///
+  /// ### Returns:
+  /// A [Future] that resolves to a tuple containing:
+  /// - `bool?`: `true` if initialization was successful, `false` if failed, or `null` if the platform does not support notifications.
+  /// - `bool?`: `true` if notification permission was granted, `false` if denied, or `null` if the platform does not support notifications.
+  Future<({bool? initResult, bool? notificationGranted})?> initAndroid({
     String? iconPath,
     bool requestExactAlarmsPermission = false,
-  }) => runIfPlatformSupports<bool?>(() async {
-    final AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings(iconPath ?? '@mipmap/ic_launcher');
-    final result = await _initializeSettings(
-      androidInitializationSettings: initializationSettingsAndroid,
-    );
+  }) => runIfPlatformSupports<({bool? initResult, bool? notificationGranted})?>(
+    () async {
+      final AndroidInitializationSettings initializationSettingsAndroid =
+          AndroidInitializationSettings(iconPath ?? '@mipmap/ic_launcher');
+      final result = await _initializeSettings(
+        androidInitializationSettings: initializationSettingsAndroid,
+      );
 
-    final bool? permissionGranted = await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin
-        >()
-        ?.requestNotificationsPermission();
+      final bool? permissionGranted = await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin
+          >()
+          ?.requestNotificationsPermission();
 
-    if (requestExactAlarmsPermission) {
-      final bool? exactAlarmsPermissionGranted =
-          await flutterLocalNotificationsPlugin
-              .resolvePlatformSpecificImplementation<
-                AndroidFlutterLocalNotificationsPlugin
-              >()
-              ?.requestExactAlarmsPermission();
-      if (exactAlarmsPermissionGranted != null &&
-          !exactAlarmsPermissionGranted) {
-        Log.e('Exact alarms permission denied');
-        return false;
+      if (requestExactAlarmsPermission) {
+        final bool? exactAlarmsPermissionGranted =
+            await flutterLocalNotificationsPlugin
+                .resolvePlatformSpecificImplementation<
+                  AndroidFlutterLocalNotificationsPlugin
+                >()
+                ?.requestExactAlarmsPermission();
+        if (exactAlarmsPermissionGranted != null &&
+            !exactAlarmsPermissionGranted) {
+          Log.e('Exact alarms permission denied');
+          // return (false, permissionGranted);
+        }
       }
-    }
 
-    if (permissionGranted != null && !permissionGranted) {
-      Log.e('Notification permission denied');
-    }
+      if (permissionGranted != null && !permissionGranted) {
+        Log.e('Notification permission denied');
+      }
 
-    return result ?? permissionGranted;
-  }, platform: TargetPlatform.android);
+      return (initResult: result, notificationGranted: permissionGranted);
+    },
+    platform: TargetPlatform.android,
+  );
 
   /// Initializes local notifications for iOS.
   ///
@@ -94,7 +102,12 @@ extension NotificationServicePlatformInit on NotificationService {
   /// - [defaultPresentBanner]: Whether banners appear by default.
   /// - [defaultPresentList]: Whether items are added to the notification list.
   /// - [notificationCategories]: Custom interactive notification categories.
-  Future<bool?> initIOS({
+  ///
+  /// ### Returns:
+  /// A [Future] that resolves to a tuple containing:
+  /// - `bool?`: `true` if initialization was successful, `false` if failed, or `null` if the platform does not support notifications.
+  /// - `bool?`: `true` if notification permission was granted, `false` if denied, or `null` if the platform does not support notifications.
+  Future<({bool? initResult, bool? notificationGranted})?> initIOS({
     bool requestAlertPermission = true,
     bool requestSoundPermission = true,
     bool requestBadgePermission = true,
@@ -109,55 +122,58 @@ extension NotificationServicePlatformInit on NotificationService {
     bool defaultPresentList = true,
     List<DarwinNotificationCategory> notificationCategories =
         const <DarwinNotificationCategory>[],
-  }) => runIfPlatformSupports<bool?>(() async {
-    final IOSInitializationSettings initializationSettingsIOS =
-        IOSInitializationSettings(
-          requestAlertPermission: requestAlertPermission,
-          requestSoundPermission: requestSoundPermission,
-          requestBadgePermission: requestBadgePermission,
-          requestProvisionalPermission: requestProvisionalPermission,
-          requestCriticalPermission: requestCriticalPermission,
-          requestProvidesAppNotificationSettings:
-              requestProvidesAppNotificationSettings,
-          requestCarPlayPermission: requestCarPlayPermission,
-          defaultPresentAlert: defaultPresentAlert,
-          defaultPresentSound: defaultPresentSound,
-          defaultPresentBadge: defaultPresentBadge,
-          defaultPresentBanner: defaultPresentBanner,
-          defaultPresentList: defaultPresentList,
-          notificationCategories: notificationCategories,
-        );
+  }) => runIfPlatformSupports<({bool? initResult, bool? notificationGranted})?>(
+    () async {
+      final IOSInitializationSettings initializationSettingsIOS =
+          IOSInitializationSettings(
+            requestAlertPermission: requestAlertPermission,
+            requestSoundPermission: requestSoundPermission,
+            requestBadgePermission: requestBadgePermission,
+            requestProvisionalPermission: requestProvisionalPermission,
+            requestCriticalPermission: requestCriticalPermission,
+            requestProvidesAppNotificationSettings:
+                requestProvidesAppNotificationSettings,
+            requestCarPlayPermission: requestCarPlayPermission,
+            defaultPresentAlert: defaultPresentAlert,
+            defaultPresentSound: defaultPresentSound,
+            defaultPresentBadge: defaultPresentBadge,
+            defaultPresentBanner: defaultPresentBanner,
+            defaultPresentList: defaultPresentList,
+            notificationCategories: notificationCategories,
+          );
 
-    final result = await _initializeSettings(
-      iosInitializationSettings: initializationSettingsIOS,
-    );
+      final result = await _initializeSettings(
+        iosInitializationSettings: initializationSettingsIOS,
+      );
 
-    if (result == null) {
-      throw Exception('Failed to initialize notification for IOS');
-    }
+      if (result == null) {
+        throw Exception('Failed to initialize notification for IOS');
+      }
 
-    final alertPermissionGranted = await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<
-          IOSFlutterLocalNotificationsPlugin
-        >()
-        ?.requestPermissions(
-          alert: requestAlertPermission,
-          badge: requestBadgePermission,
-          sound: requestSoundPermission,
-          provisional: requestProvisionalPermission,
-          critical: requestCriticalPermission,
-          carPlay: requestCarPlayPermission,
-          providesAppNotificationSettings:
-              requestProvidesAppNotificationSettings,
-        );
+      final alertPermissionGranted = await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<
+            IOSFlutterLocalNotificationsPlugin
+          >()
+          ?.requestPermissions(
+            alert: requestAlertPermission,
+            badge: requestBadgePermission,
+            sound: requestSoundPermission,
+            provisional: requestProvisionalPermission,
+            critical: requestCriticalPermission,
+            carPlay: requestCarPlayPermission,
+            providesAppNotificationSettings:
+                requestProvidesAppNotificationSettings,
+          );
 
-    if (alertPermissionGranted == null) {
-      throw Exception('Failed to request permissions for iOS');
-    }
+      if (alertPermissionGranted == null) {
+        throw Exception('Failed to request permissions for iOS');
+      }
 
-    Log.i('iOS notification permissions were granted');
-    return alertPermissionGranted;
-  }, platform: TargetPlatform.iOS);
+      Log.i('iOS notification permissions were granted');
+      return (initResult: result, notificationGranted: alertPermissionGranted);
+    },
+    platform: TargetPlatform.iOS,
+  );
 
   /// Initializes local notifications for Linux desktop environments.
   ///
@@ -168,6 +184,10 @@ extension NotificationServicePlatformInit on NotificationService {
   /// - [defaultIcon]: The default icon used for notifications if none is specified.
   /// - [defaultSound]: The default system sound or file to play.
   /// - [defaultSuppressSound]: Whether notification sounds are muted by default.
+  ///
+  /// ## Returns:
+  /// A [Future] that resolves to:
+  /// - `bool?`: `true` if initialization was successful, `false` if failed, or `null` if the platform does not support notifications.
   Future<bool?> initLinux({
     String defaultActionName = 'Open notification',
     AssetsLinuxIcon? defaultIcon,
@@ -196,6 +216,10 @@ extension NotificationServicePlatformInit on NotificationService {
   /// - [appUserModelId]: The Application User Model ID for the app.
   /// - [guid]: The unique identifier for the app's notification registration.
   /// - [iconPath]: The file path to the app's notification icon.
+  ///
+  /// ### Returns:
+  /// A [Future] that resolves to:
+  /// - `bool?`: `true` if initialization was successful, `false` if failed, or `null` if the platform does not support notifications.
   Future<bool?> initWindows({
     required String appName,
     required String appUserModelId,

@@ -13,11 +13,15 @@ Future<void> main() async {
   );
 
   if (defaultTargetPlatform == TargetPlatform.android) {
-    final granted = await notifications.initAndroid(
+    final result = await notifications.initAndroid(
       requestExactAlarmsPermission: true,
     );
 
-    if (granted == true) {
+    if (result == null) {
+      if (kDebugMode) {
+        print('Android notifications are not supported on this platform.');
+      }
+    } else if (result.notificationGranted == true) {
       await notifications.createChannel(
         channelId: 'reminders',
         channelName: 'Reminders',

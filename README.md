@@ -23,7 +23,7 @@ Add Bellflow to your app:
 
 ```yaml
 dependencies:
-  bellflow: ^0.1.0
+  bellflow: ^1.0.0
 ```
 
 Then run:

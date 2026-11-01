@@ -18,6 +18,10 @@ extension NotificationServicePlatformHelpers on NotificationService {
     Future<T> Function() action, {
     required TargetPlatform platform,
   }) async {
+    assert(
+      !_initialized,
+      'NotificationService is already initialized. Do not call platform initialization methods multiple times.',
+    );
     if (platform == defaultTargetPlatform) {
       return action();
     }

@@ -71,11 +71,9 @@ Future<void> main() async {
       requestExactAlarmsPermission: true,
     );
 
-    if (result.initResult == null) {
-      logger.e("Failed init for Android")
-    }
-
-    if (result.notificationGranted == true) {
+    if (result == null || result.initResult != true) {
+      debugPrint('Failed to initialize notifications on Android.');
+    } else if (result.notificationGranted == true) {
       await notifications.createChannel(
         channelId: 'reminders',
         channelName: 'Reminders',

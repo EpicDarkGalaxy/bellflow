@@ -35,6 +35,10 @@ class NotificationService {
     bool initTimeZone = true,
   }) async {
     try {
+      if (_initialized) {
+        Log.i('NotificationService is already initialized.');
+        return;
+      }
       if (initTimeZone) {
         tz.initializeTimeZones();
 

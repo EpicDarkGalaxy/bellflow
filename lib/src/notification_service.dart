@@ -16,6 +16,8 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
+  Log _log = Log();
+
   bool _initialized = false;
   Function(String? payload)? _onNotificationTap;
 
@@ -30,15 +32,28 @@ class NotificationService {
   ///   a notification.
   /// - [initTimeZone]: If `true`, the local time zone is initialized. Set to
   ///   `false` if you are handling time zone setup elsewhere.
+  /// - [loggerInfo]: A function for logging info messages.
+  /// - [loggerWarning]: A function for logging warning messages.
+  /// - [loggerError]: A function for logging error messages.
+  ///
+  ///   parameters [loggerInfo], [loggerWarning], and [loggerError] are optional and can be used to customize logging behavior or to export logs.
+  ///
   Future<void> init({
     Function(String? payload)? onNotificationTap,
     bool initTimeZone = true,
+    Function(String message)? loggerInfo,
+    Function(String message)? loggerWarning,
+    Function(String message, {Object? error, StackTrace? stackTrace})?
+    loggerError,
   }) async {
+    if (_initialized) {
+      _log.i('NotificationService is already initialized.');
+      return;
+    }
+    if (loggerInfo != null || loggerWarning != null || loggerError != null) {
+      _log = Log(e: loggerError, i: loggerInfo, w: loggerWarning);
+    }
     try {
-      if (_initialized) {
-        Log.i('NotificationService is already initialized.');
-        return;
-      }
       if (initTimeZone) {
         tz.initializeTimeZones();
 
@@ -47,10 +62,10 @@ class NotificationService {
 
         tz.setLocalLocation(tz.getLocation(timeZoneName));
 
-        Log.i('Timezone initialized successfully to: $timeZoneName');
+        _log.i('Timezone initialized successfully to: $timeZoneName');
       }
     } catch (e) {
-      Log.e('Failed to initialize timezones: $e');
+      _log.e('Failed to initialize timezones: $e');
       tz.setLocalLocation(tz.getLocation('UTC'));
     }
     _onNotificationTap = onNotificationTap;
@@ -127,8 +142,8 @@ class NotificationService {
   /// Cancels all scheduled and displayed notifications.
   Future<void> cancelAllNotifications() async {
     await runIfInitialized(() async {
-      Log.i('All notifications cancelled');
       await flutterLocalNotificationsPlugin.cancelAll();
+      _log.i('All notifications cancelled');
     });
   }
 
@@ -139,7 +154,7 @@ class NotificationService {
   Future<void> cancelNotification(int id) async {
     await runIfInitialized(() async {
       await flutterLocalNotificationsPlugin.cancel(id: id);
-      Log.i('Cancelled notifications for id: $id');
+      _log.i('Cancelled notifications for id: $id');
     });
   }
 
@@ -148,11 +163,13 @@ class NotificationService {
   /// Displays a notification right away using the specified platform details.
   ///
   /// ### Parameters:
+  /// - [id]: Unique identifier for the notification. If not provided, defaults to 0.
   /// - [title]: The title displayed at the top of the notification.
   /// - [body]: The main text content of the notification.
   /// - [notificationDetails]: Platform-specific configuration.
   /// - [payload]: Optional data passed when the user interacts with the notification.
   Future<void> showNotification({
+    int? id,
     required String title,
     required String body,
     required NotificationDetails notificationDetails,
@@ -160,7 +177,7 @@ class NotificationService {
   }) async {
     await runIfInitialized(() async {
       await flutterLocalNotificationsPlugin.show(
-        id: 0,
+        id: id ?? 0,
         title: title,
         body: body,
         notificationDetails: notificationDetails,
@@ -198,17 +215,17 @@ class NotificationService {
           payload: payload,
         );
       } catch (e) {
-        Log.e(
+        _log.e(
           "Could not Schedule notification on ${defaultTargetPlatform.name}",
           error: e,
         );
         return null;
       }
     } else {
-      Log.i("Schedule time was before current time, so skipped.");
+      _log.i("Schedule time was before current time, so skipped.");
       return null;
     }
-    Log.i('Scheduled notifications with id: $id');
+    _log.i('Scheduled notifications with id: $id');
     return true;
   });
 }

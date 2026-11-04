@@ -7,7 +7,7 @@ extension NotificationServicePlatformHelpers on NotificationService {
       'NotificationService is not initialized. Call init() and respective platform initialization methods first.',
     );
     if (!_initialized) {
-      Log.w('Attempted to run notification action before initialization.');
+      _log.w('Attempted to run notification action before initialization.');
       return null;
     }
 
@@ -26,7 +26,7 @@ extension NotificationServicePlatformHelpers on NotificationService {
       return action();
     }
 
-    Log.w('Skipped platform initialization for $platform');
+    _log.w('Skipped platform initialization for $platform');
     return null;
   }
 }
@@ -73,13 +73,13 @@ extension NotificationServicePlatformInit on NotificationService {
                 ?.requestExactAlarmsPermission();
         if (exactAlarmsPermissionGranted != null &&
             !exactAlarmsPermissionGranted) {
-          Log.e('Exact alarms permission denied');
+          _log.e('Exact alarms permission denied');
           // return (false, permissionGranted);
         }
       }
 
       if (permissionGranted != null && !permissionGranted) {
-        Log.e('Notification permission denied');
+        _log.e('Notification permission denied');
       }
 
       return (initResult: result, notificationGranted: permissionGranted);
@@ -173,7 +173,7 @@ extension NotificationServicePlatformInit on NotificationService {
         throw Exception('Failed to request permissions for iOS');
       }
 
-      Log.i('iOS notification permissions were granted');
+      _log.i('iOS notification permissions were granted');
       return (initResult: result, notificationGranted: alertPermissionGranted);
     },
     platform: TargetPlatform.iOS,
@@ -269,12 +269,12 @@ extension NotificationServicePlatformInit on NotificationService {
 
     if (!result) {
       _initialized = false;
-      Log.e('Could not initialize');
+      _log.e('Could not initialize');
       return result;
     }
 
     _initialized = true;
-    Log.i('Notification Initialized!');
+    _log.i('Notification Initialized!');
     return result;
   }
 }

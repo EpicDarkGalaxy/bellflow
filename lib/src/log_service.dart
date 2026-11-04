@@ -3,35 +3,30 @@ part of 'notification_service.dart';
 class Log {
   static const int _defaultWidth = 120;
 
-  static void i(
-    String message, {
-    String symbol = '💡',
-    int width = _defaultWidth,
+  Log({
+    Function(String message)? i,
+    Function(String message, {Object? error, StackTrace? stackTrace})? e,
+    Function(String message)? w,
   }) {
-    _print(message, symbol: symbol, width: width);
+    if (i != null) this.i = i;
+    if (e != null) this.e = e;
+    if (w != null) this.w = w;
   }
 
-  static void w(
-    String message, {
-    String symbol = '⚠️',
-    int width = _defaultWidth,
-  }) {
-    _print(message, symbol: symbol, width: width);
-  }
+  Function(String message) i = (message) {
+    _print(message, symbol: '💡', width: _defaultWidth);
+  };
+  Function(String message) w = (message) {
+    _print(message, symbol: '⚠️', width: _defaultWidth);
+  };
+  Function(String message, {Object? error, StackTrace? stackTrace}) e =
+      (message, {error, stackTrace}) {
+        final fullMessage = StringBuffer(message);
+        if (error != null) fullMessage.write('\nError: $error');
+        if (stackTrace != null) fullMessage.write('\nStackTrace:\n$stackTrace');
 
-  static void e(
-    String message, {
-    Object? error,
-    StackTrace? stackTrace,
-    String symbol = '❌',
-    int width = _defaultWidth,
-  }) {
-    final fullMessage = StringBuffer(message);
-    if (error != null) fullMessage.write('\nError: $error');
-    if (stackTrace != null) fullMessage.write('\nStackTrace:\n$stackTrace');
-
-    _print(fullMessage.toString(), symbol: symbol, width: width);
-  }
+        _print(fullMessage.toString(), symbol: '❌', width: _defaultWidth);
+      };
 
   static void _print(
     String message, {
@@ -45,7 +40,7 @@ class Log {
 
     debugPrint(topBorder);
     for (final line in message.split('\n')) {
-      debugPrint('│ $symbol $line [Notification Service]');
+      debugPrint('│ $symbol $line [Bellflow]');
     }
     debugPrint(bottomBorder);
   }

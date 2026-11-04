@@ -23,7 +23,7 @@ Add Bellflow to your app:
 
 ```yaml
 dependencies:
-  bellflow: ^1.0.0
+  bellflow: ^1.1.0
 ```
 
 Then run:
@@ -154,7 +154,11 @@ Android-specific setup still needs to be handled in the app, especially:
 
 - `POST_NOTIFICATIONS` permission on Android 13+
 - exact alarm permission when using precise scheduling
-- the receiver and manifest configuration expected by `flutter_local_notifications`
+- core library desugaring required by `flutter_local_notifications`
+
+Bellflow contributes the scheduled-notification receivers through Android's
+manifest merger. To disable scheduled notifications, set
+`ENABLE_SCHEDULED_NOTIFICATIONS=false` in the app's `android/gradle.properties`.
 
 See the plugin's Android setup guide before shipping to production.
 

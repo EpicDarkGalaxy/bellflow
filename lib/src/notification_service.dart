@@ -19,7 +19,7 @@ class NotificationService {
   Log _log = Log();
 
   bool _initialized = false;
-  Function(String? payload)? _onNotificationTap;
+  Function(NotificationResponse details)? _onNotificationTap;
 
   /// Initializes the local time zone and the notification service.
   ///
@@ -39,7 +39,7 @@ class NotificationService {
   ///   parameters [loggerInfo], [loggerWarning], and [loggerError] are optional and can be used to customize logging behavior or to export logs.
   ///
   Future<void> init({
-    Function(String? payload)? onNotificationTap,
+    Function(NotificationResponse details)? onNotificationTap,
     bool initTimeZone = true,
     Function(String message)? loggerInfo,
     Function(String message)? loggerWarning,

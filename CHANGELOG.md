@@ -3,6 +3,7 @@
 - Added optional `loggerInfo`, `loggerWarning`, and `loggerError` callbacks to `NotificationService.init(...)` for custom log handling.
 - Improved initialization flow by allowing application-defined logging without changing the existing initialization behavior.
 - Bellflow now contributes the scheduled notification receivers to the Android manifest via manifest merging, enabling Android scheduled notification setup with `ENABLE_SCHEDULED_NOTIFICATIONS` support.
+- Improved notification tap handling by passing the full NotificationResponse to onNotificationTap, including payload, id, actionId, and other response metadata for richer app navigation and action handling.
 
 ## 1.0.0
 

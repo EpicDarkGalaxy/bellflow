@@ -258,8 +258,9 @@ extension NotificationServicePlatformInit on NotificationService {
     final result = await flutterLocalNotificationsPlugin.initialize(
       settings: initializationSettings,
       onDidReceiveNotificationResponse: (details) {
-        if (_onNotificationTap == null) return;
-        _onNotificationTap!(details.payload);
+        if (_onNotificationTap != null) {
+          _onNotificationTap!(details);
+        }
       },
     );
 
